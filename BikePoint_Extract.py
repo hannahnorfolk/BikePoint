@@ -36,13 +36,26 @@ while attempt < max_retry:
         #Convert the JSON response into python variable
         data = response.json()
 
-        # Open the output file and write the API data to it as JSON
-        with open(filename, 'w') as file:
-            json.dump(data,file)
+        # Check that the API returned data before trying to save it
+        if len(data)>0:
+            try:
 
-        # print the success comment, and break out the while loop
-        print(f'{filename} was successfully saved. Yipee!')
-        break
+                # Open the output file and write the API data to it as JSON
+                with open(filename, 'w') as file:
+                    json.dump(data,file)
+
+            # print the success comment, and break out the while loop
+                print(f'{filename} was successfully saved. Yipee!')
+
+        #handle errors that occur while creating or writing to the file
+            except Exception as e:
+                print(f'An error has occurred: {e}')
+            break
+
+        #API request succeeded but no data was returned
+        else:
+            print('No data returned')
+            break
 
     #Write the elif statement - for the server or client side errors
     elif status < 200 or status >= 500:
