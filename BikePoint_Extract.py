@@ -4,6 +4,7 @@ import os
 import json
 from datetime import datetime
 import time
+import logging
 
 #define the variables that allow us to call the API
 url = 'https://api.tfl.gov.uk/BikePoint/'
@@ -15,6 +16,22 @@ os.makedirs(data_dir, exist_ok = True)
 #Create a timestamp so each extract gets a unique filename
 timestamp = datetime.now().strftime('%Y-%m-%d %H-%M-%S')
 filename = f'{data_dir}/{timestamp}.json'
+
+#Create a folder for log files if it doesn't already exist
+log_dir = 'log'
+os.makedirs(log_dir, exist_ok = True)
+log_filename = f'{log_dir}/{timestamp}.json'
+
+# Configure logging so messages are written to the log file
+logging.basicConfig(
+    filename=log_filename,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    level= logging.INFO
+)
+
+# Create the logger and confirm that it has been successfully set up
+logger = logging.getLogger()
+logger.info('Logger successfully initialised')
 
 # set up retry settings in case the API fails
 max_retry = 5
@@ -46,15 +63,18 @@ while attempt < max_retry:
 
             # print the success comment, and break out the while loop
                 print(f'{filename} was successfully saved. Yipee!')
+                logger.info(f'{filename} was successfully saved. Yipee!')
 
         #handle errors that occur while creating or writing to the file
             except Exception as e:
                 print(f'An error has occurred: {e}')
+                logger.error(f'An error has occurred: {e}')
             break
 
         #API request succeeded but no data was returned
         else:
             print('No data returned')
+            logger.warning('No data returned')
             break
 
     #Write the elif statement - for the server or client side errors
@@ -62,11 +82,10 @@ while attempt < max_retry:
         time.sleep(delay)
         attempt +=1
         print(f'Status code:{status}.Retrying. Attempt number {attempt}')
+        logger.info(f'Status code:{status}.Retrying. Attempt number {attempt}')
 
 
     else:
         print(f'Error. Status code {status}. Fix it')
+        logger.critical(f'Error. Status code {status}. Fix it')
         break
-
-    #print the status code to see if the API call has worked. From the response, get the status code
-    #    print(response.status_code)
