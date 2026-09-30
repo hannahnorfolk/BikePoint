@@ -1,0 +1,30 @@
+name: Bike Point Ingestion
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch: # gives us a button that lets us run it 
+
+
+jobs:
+  build:
+    runs-on: windows-latest
+    environment: Bikepoint environment
+    steps: # these are a list of the different steps we want the actions to take
+      - name: Checkout the repo
+        uses: actions/checkout@v7 #actions is Github's actions. v7 is the branch version for that function (?)
+
+      - name: Setup python environment
+        uses: actions/setup-python@v7 #it can be inconsistent, you don't have to use the same version the whole time.
+        with:
+          python-version: 3.12
+
+      - name: Install packages
+        run: pip install -r requirements.txt # run functions means you can write in whatever you would like in the terminal
+
+      - name: Run python
+        env:
+          AWS_ACCESS_KEY: ${{secrets.AWS_ACCESS_KEY}} #inside the brackets is the secret we made online. the variable before the : is the secret we named in the python code, but it's easiest to keep these the same
+          AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          AWS_BUCKET_NAME: ${{secrets.AWS_BUCKET_NAME}}
+        run: python main.py
